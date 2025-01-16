@@ -8,6 +8,88 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
   die("Nu aveți dreptul de a accesa această pagină.");
 }
 
+  if (isset($_POST['upload_csv'])) {
+    if (isset($_FILES['csv_file']) && $_FILES['csv_file']['error'] === UPLOAD_ERR_OK) {
+      $csvTmpName = $_FILES['csv_file']['tmp_name'];
+
+      $handle = fopen($csvTmpName, 'r');
+      if ($handle === false) {
+          redirect('admin_orders.php?err=Nu s-a putut deschide fișierul CSV.');
+      }
+
+      $header = fgetcsv($handle, 1000, ',');
+      $ordersData = [];
+
+      while (($row = fgetcsv($handle, 1000, ',')) !== false) {
+
+          if (count($row) < 5) {
+              continue;
+          }
+
+          list($orderNumber, $userId, $productId, $quantity, $price) = $row;
+
+          $orderNumber = (int)$orderNumber;
+          $userId      = (int)$userId;
+          $productId   = (int)$productId;
+          $quantity    = (int)$quantity;
+          $price       = (float)$price;
+
+          $ordersData[$orderNumber][] = [
+              'user_id'    => $userId,
+              'product_id' => $productId,
+              'quantity'   => $quantity,
+              'price'      => $price
+          ];
+      }
+      fclose($handle);
+
+      $conn->begin_transaction();
+      try {
+          foreach ($ordersData as $orderNumber => $items) {
+              if (empty($items)) {
+                  continue;
+              }
+              $userId = $items[0]['user_id'] ?? 0;
+
+              $orderTotal = 0.0;
+              foreach ($items as $it) {
+                  $orderTotal += $it['price'] * $it['quantity'];
+              }
+
+              $stmt = $conn->prepare("INSERT INTO orders (user_id, total) VALUES (?, ?)");
+              $stmt->bind_param('id', $userId, $orderTotal);
+              $stmt->execute();
+              $orderId = $stmt->insert_id;
+              $stmt->close();
+
+              $stmtItem = $conn->prepare("
+                  INSERT INTO order_items (order_id, product_id, quantity, price)
+                  VALUES (?, ?, ?, ?)
+              ");
+              foreach ($items as $it) {
+                  $stmtItem->bind_param(
+                      'iiid',
+                      $orderId,
+                      $it['product_id'],
+                      $it['quantity'],
+                      $it['price']
+                  );
+                  $stmtItem->execute();
+              }
+              $stmtItem->close();
+          }
+          $conn->commit();
+
+          redirect('admin_orders.php?msg=Importul s-a realizat cu succes!');
+      } catch (Exception $e) {
+          $conn->rollback();
+          redirect('admin_orders.php?err=Eroare la import: ' . urlencode($e->getMessage()));
+      }
+  } else {
+      redirect('admin_orders.php?err=Eroare la upload sau fișier CSV inexistent.');
+  }
+}
+
 $orderId = $_GET['order_id'] ?? null;
 ?>
 
@@ -36,6 +118,32 @@ $orderId = $_GET['order_id'] ?? null;
         Pagina Principală
       </a>
     </div>
+
+    <?php if (!empty($_GET['msg'])): ?>
+        <p style="color:green;"><?php echo htmlspecialchars($_GET['msg']); ?></p>
+    <?php endif; ?>
+    <?php if (!empty($_GET['err'])): ?>
+        <p style="color:red;"><?php echo htmlspecialchars($_GET['err']); ?></p>
+    <?php endif; ?>
+
+    <div style="margin-bottom:30px; background:#fafafa; padding:20px; border:1px solid #ddd;">
+        <h3>Importă Comenzi din CSV</h3>
+        <form method="POST" enctype="multipart/form-data">
+            <input type="file" name="csv_file" accept=".csv" required
+                   style="margin:10px 0;">
+            <br>
+            <input type="submit" name="upload_csv" value="Importă CSV"
+                   style="padding:10px 20px; font-size:16px; background:#ffc107; color:#212529;
+                          border:none; border-radius:5px; cursor:pointer;">
+        </form>
+        <p style="margin-top:10px; font-style:italic;">
+            Format așteptat: <br>
+            <code>order_number,user_id,product_id,quantity,price</code>
+        </p>
+    </div>
+
+
+
     <hr>
 
     <?php if ($orderId): ?>

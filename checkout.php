@@ -24,11 +24,9 @@ foreach ($_SESSION['cart'] as $prod_id => $qty) {
     $data = $result->fetch_assoc();
     $price = $data['price'];
 
-    // Calculăm total parțial
     $lineTotal = $price * $qty;
     $grandTotal += $lineTotal;
 
-    // Stocăm info pentru inserare
     $cartItems[] = [
       'product_id' => $prod_id,
       'quantity'   => $qty,

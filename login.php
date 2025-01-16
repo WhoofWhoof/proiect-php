@@ -26,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
           if ($row['role'] === 'admin') {
             redirect('admin.php');
+
           } else {
             redirect('index.php');
           }
