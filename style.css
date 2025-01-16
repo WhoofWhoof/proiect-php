@@ -1,0 +1,110 @@
+/* ========== RESET / BAZĂ ========== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f8f9fa; /* gri deschis */
+  color: #212529;           /* gri închis */
+  margin: 0;
+  padding: 0;
+}
+
+/* ========== CONTAINER ========== */
+.container {
+  width: 90%;
+  max-width: 600px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 6px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* ========== HEADERS / TITLURI ========== */
+h1, h2, h3 {
+  margin-bottom: 20px;
+}
+
+/* ========== FORMULAR ========== */
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  padding: 8px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+input[type="submit"] {
+  padding: 10px;
+  cursor: pointer;
+  background-color: #007bff;
+  border: none;
+  color: #fff;
+  border-radius: 4px;
+}
+
+input[type="submit"]:hover {
+  background-color: #0056b3;
+}
+
+/* ========== TABEL ========== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+table th, table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+/* ========== LINK-URI & BUTOANE SIMPLE ========== */
+a {
+  color: #007bff;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+
+}
+
+.button {
+  color: white;
+  padding: 5px 10px;
+  border-radius: 10px;
+  background-color: #007bff;
+  transition: background-color 0.3s;
+  &:hover {
+    background-color: #0056b3;
+    text-decoration: none;
+  }
+}
+
+
+
+/* Mesaje de eroare/succes */
+.error {
+  color: red;
+  margin-bottom: 15px;
+}
+.success {
+  color: green;
+  margin-bottom: 15px;
+}
